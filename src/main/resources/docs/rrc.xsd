@@ -1,0 +1,3897 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="xs3p.xsl"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   targetNamespace="http://rrc.networks.btretail.net"
+	   xmlns="http://rrc.networks.btretail.net">
+
+    <!-- ======================================================================= -->
+    <!-- Simple Types                                                            -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="property">
+	<xs:annotation>
+	    <xs:documentation>
+		XML holder for old properties file entries that aren't yet supported by the XML confguration file.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="name" type="xs:string" use="required"/>
+	<xs:attribute name="value" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:simpleType name="percent">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple percentage.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:integer">
+	    <xs:minInclusive value="0"/>
+	    <xs:maxInclusive value="100"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="probability">
+	<xs:annotation>
+	    <xs:documentation>
+		Probability between 0.0 and 1.0.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:decimal">
+	    <xs:minInclusive value="0.0"/>
+	    <xs:maxInclusive value="1.0"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="portType">
+	<xs:annotation>
+	    <xs:documentation>
+		TCP / UDP port type with a sensible range restriction.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:integer">
+	    <xs:minInclusive value="1"/>
+	    <xs:maxInclusive value="65535"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="timeoutType">
+	<xs:annotation>
+	    <xs:documentation>
+		Timeout type in milliseconds with a sensible range restriction.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:integer">
+	    <xs:minInclusive value="10"/>
+	    <xs:maxInclusive value="60000"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ipType">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple type representing an IP address. Validated based on regular expression so can't fully validate the IP address (e.g. check the value of each octet is between 0 and 255).
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:pattern value="[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ipPortType">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple type representing an IP address and a port number in the format 1.2.3.4:1812.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:pattern value="[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]+"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="hostAndPort">
+	<xs:annotation>
+	    <xs:documentation>
+		Hostname with an optional port number.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:pattern value="[a-zA-Z0-9\-_+.]+(:[0-9]+)?"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="identifier">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple identifier string.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:pattern value="[a-zA-Z0-9_]+"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ipSubnetType">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple type representing an IP subnet address. Validated based on regular expression so can't fully validate the IP address (e.g. check the value of each octet is between 0 and 255).
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:pattern value="[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}(/[0-9]{1,2})?"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="retryType">
+	<xs:annotation>
+	    <xs:documentation>
+		Retry count for a RADIUS retransmission with a sensible range restriction.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:integer">
+	    <xs:minInclusive value="0"/>
+	    <xs:maxInclusive value="20"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="radiusSelectorType">
+	<xs:annotation>
+	    <xs:documentation>
+		Defines the different types of load balancing algorithm that may be used to distribute RADIUS packets across the members of a radius-server-group.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:enumeration value="sequential">
+		<xs:annotation>
+		    <xs:documentation>
+			For each packet, works through the configured servers from the start if the list until a working server is found. No state is maintained between packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="round-robin">
+		<xs:annotation>
+		    <xs:documentation>
+			Passes the packet to the next server in sequence. Remembers the last used server between packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="roundrobin">
+		<xs:annotation>
+		    <xs:documentation>
+			Passes the packet to the next server in sequence. Remembers the last used server between packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="hash">
+		<xs:annotation>
+		    <xs:documentation>
+			For each packet, generates a hash value from the specified attribute (Framed-IP-Address by default( and distributes the hash values across the configured (and available) servers. Produces a consistent distribution of packets based on the hashed attribute.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="random">
+		<xs:annotation>
+		    <xs:documentation>
+			For each packet, picks a random server from the list. If the request times out, a new random selection is made. No state is maintained between packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="oidType">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple type representing an SNMP OID.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:pattern value="[0-9]+(\.[0-9]+)*"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="keyConversion">
+	<xs:annotation>
+	    <xs:documentation>
+		Defines the different types conversion that may be applied to a string used as a key in certain external lookups.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:enumeration value="none">
+		<xs:annotation>
+		    <xs:documentation>
+			Use the key value verbatim.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="lowercase">
+		<xs:annotation>
+		    <xs:documentation>
+			Convert the key value to lowercase.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="uppercase">
+		<xs:annotation>
+		    <xs:documentation>
+			Convert the key value to uppercase.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="btretail">
+		<xs:annotation>
+		    <xs:documentation>
+			Apply the BT Retail model of keys containing a '@' character are lowercase, everything else is uppercase.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="valueConversion">
+	<xs:annotation>
+	    <xs:documentation>
+		Defines the different types conversion that may be applied during an assignment operation like Set or Add.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:enumeration value="none">
+		<xs:annotation>
+		    <xs:documentation>
+			Use the key value verbatim.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="lowercase">
+		<xs:annotation>
+		    <xs:documentation>
+			Convert the key value to lowercase.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="uppercase">
+		<xs:annotation>
+		    <xs:documentation>
+			Convert the key value to uppercase.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="btretailcase">
+		<xs:annotation>
+		    <xs:documentation>
+			Apply the BT Retail model of keys containing a '@' character are lowercase, everything else is uppercase.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	</xs:restriction>
+    </xs:simpleType>
+    
+    <!-- ======================================================================= -->
+    <!-- Core RRC Configuration                                                  -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="listener">
+	<xs:annotation>
+	    <xs:documentation>
+		Declaration of listening ports other than those used by the RADIUS authentication and accounting functions.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="monitor">
+		<xs:annotation>
+		    <xs:documentation>
+			Listening ports for interfacing with an external load balancer.
+
+			RRC publishes it's operational status for handling authentication and accounting packets via TCP listening ports. The load balancer can poll these ports to obtain status for the corresponding service. If RRC is able to handle the authentication or accounting packets, it will accept TCP connections on the monitoring port. These will be closed automatically by RRC shortly after the connection is accepted. Any input received will be discarded.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:attribute name="auth" type="xs:unsignedShort" use="optional"/>
+		    <xs:attribute name="acct" type="xs:unsignedShort" use="optional"/>
+		    <xs:attribute name="check" type="xs:unsignedShort" use="optional"/>
+		    <xs:attribute name="sentinal-file" type="xs:string" use="optional" default="${rrc.log.dir}/shutdown.now" />
+		</xs:complexType>
+	    </xs:element>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="logging">
+	<xs:annotation>
+	    <xs:documentation>
+		Configure logging.
+	    </xs:documentation>
+	</xs:annotation>
+    </xs:complexType>
+
+    <xs:complexType name="statistics">
+	<xs:annotation>
+	    <xs:documentation>
+		Statistics that should be reported via the Phoenix SNMP MIB extension mechanism.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="scale" minOccurs="0" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Scale factor to apply to the metric value. Allows small floating point values to be reported as scaled integers.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:simpleContent>
+			<xs:extension base="xs:string">
+			    <xs:attribute name="oid" type="oidType" />
+			</xs:extension>
+		    </xs:simpleContent>
+		</xs:complexType>
+	    </xs:element>
+	    <xs:element name="metric" minOccurs="0" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Metric to be reported as the specified OID object.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:simpleContent>
+			<xs:extension base="xs:string">
+			    <xs:attribute name="oid" type="oidType" />
+			</xs:extension>
+		    </xs:simpleContent>
+		</xs:complexType>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="port" type="xs:unsignedShort" use="optional" default="2823">
+	    <xs:annotation>
+		<xs:documentation>
+		    Port to listen on for simple telnet access to the statistics.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="output-dir" type="xs:string" use="optional" default="${rrc.log.dir}/snmp">
+	    <xs:annotation>
+		<xs:documentation>
+		    Directory where the SNMP MIB files should be written. Directory must already exist.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+
+	<xs:attribute name="update-interval" type="xs:positiveInteger" use="optional" default="30000">
+	    <xs:annotation>
+		<xs:documentation>
+		    Interval between updates to the SNMP MIB files.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="base" type="oidType" use="optional" default="1.3.6.1.4.1.7560.4.10.20.6">
+	    <xs:annotation>
+		<xs:documentation>
+		    Base value of the OID used for the SNMP MIB stats. Allows shortening of the OID in each specific MIB statistics declaration.
+		    e.g. 1.3.6.1.4.1.7560.4.10.20.6
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="histogram-granularity" type="xs:positiveInteger" use="optional" default="10">
+	    <xs:annotation>
+		<xs:documentation>
+		    Level of granularity to use in generating histogram information on metric values.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="rate-estimator-window" type="xs:positiveInteger" use="optional" default="10">
+	    <xs:annotation>
+		<xs:documentation>
+		    Time interval over which RRC estimates the rate of an event occuring.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- RADIUS Servers and Groups                                               -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="radius-server">
+	<xs:annotation>
+	    <xs:documentation>
+		Declaration of a RADIUS server. A declaration is required for all RADIUS servers that RRC will interact with.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="ip" type="ipType" >
+		<xs:annotation>
+		    <xs:documentation>
+			IP address of the RADIUS server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of this RADIUS server. This is a handle by which the RADIUS server can be referenced in RADIUS server group configurations.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="secret" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Shared secret for communications between RRC and the RADIUS server.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="auth-port" type="xs:unsignedShort" use="optional" default="1812">
+	    <xs:annotation>
+		<xs:documentation>
+		    UDP port to which authentication packets should be directed.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="acct-port" type="xs:unsignedShort" use="optional" default="1813">
+	    <xs:annotation>
+		<xs:documentation>
+		    UDP port to which accounting packets should be directed.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="timeout" type="timeoutType" use="optional" default="2500">
+	    <xs:annotation>
+		<xs:documentation>
+		    Timeout in milliseconds to apply to each RADIUS request when 
+		    send to this RADIUS server.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="max-outstanding-requests" type="xs:integer" use="optional" default="50">
+	    <xs:annotation>
+		<xs:documentation>
+		    The maximum number of requests that RRC will allow to be outstanding to this server. This provides a means to limit the rate at which RRC will forward requests to the server.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="failure-threshold" type="retryType" use="optional" default="5">
+	    <xs:annotation>
+		<xs:documentation>
+		    The number of successive timeouts that must occur for the RADIUS server to be considered as down / failed.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="failure-time" type="timeoutType" use="optional" default="7500">
+	    <xs:annotation>
+		<xs:documentation>
+		    The minimum time interval (milliseconds) over which the failed responses must occur. Provides a means to de-sensitise RRC to short burts of packet loss so a RADIUS server isn't considered down due a few packets being lost.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="retry-probe-interval" type="timeoutType" use="optional" default="30000">
+	    <xs:annotation>
+		<xs:documentation>
+		    Time interval in milliseconds between probes to determine if the RADIUS server has recovered. Real RADIUS packets are used to perform the probe so may be delayed if the server is still down. Probably means this shouldn't be set too short.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="update-acct-delay-time" type="xs:boolean"  use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Causes RRC to update the Acct-Delay-Time attribute when forwarding packets to this destination to include any delay introduced by RRC (e.g. by queueing and retries).
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="radius-group">
+	<xs:annotation>
+	    <xs:documentation>
+		Declaration of a RADIUS server group. These are only required to declare destinations to which RRC will send RADIUS packets. Each groups declares one or more RADIUS servers, and the algorithm used to select between them.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="server" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Name of a RADIUS server, or RADIUS group to include in this radius group.  The server or group must have been declared before this group.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS server group. Used to reference the group in, for example, proxy statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="selector" type="radiusSelectorType" use="optional" default="sequential">
+	    <xs:annotation>
+		<xs:documentation>
+		    Selection algorithm for determining how RADIUS packets are distributed across the available RADIUS servers.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="hash-attribute" type="xs:string" use="optional" default="Framed-IP-Address">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS attribute to use for distributing requests under the 'hash' algorithm. Must be an IP address attribute.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="retries" type="retryType"  use="optional" default="3">
+	    <xs:annotation>
+		<xs:documentation>
+		    Number of retries to perform when sending to this server group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="timeout" type="timeoutType"  use="optional" default="5000">
+	    <xs:annotation>
+		<xs:documentation>
+		    Request timeout time in milliseconds for requests to this group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="fire-and-forget" type="xs:boolean"  use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enabled fire and forget behaviour where RRC is not expecting to receive an acknowledgement to accounting packets.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="radius">
+	<xs:sequence>
+	    <xs:element name="radius-server" type="radius-server" minOccurs="0" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Declares a RADIUS server - used to accept received requests.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="radius-group" type="radius-group" minOccurs="0" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Declares a RADIUS server group - used as a destination for proxying requests.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- Lookups                                                                 -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="db-instance">
+	<xs:sequence>
+	    <xs:annotation>
+		<xs:documentation>
+		    Declares an instance of a database lookup that may be used by RRC.
+		</xs:documentation>
+	    </xs:annotation>
+
+	    <xs:element name="host" type="hostAndPort" minOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			Hostname / IP address of the database with the appropriate port appended.
+			e.g. 10.22.36.138:1521
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="db-name" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Name of the database.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="username" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Username to authenticate with.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="password" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Password to authenticate with.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="pool-size" minOccurs="0">
+		<xs:simpleType>
+		    <xs:annotation>
+			<xs:documentation>
+			    Specify the maximum number of concurrent connections to the database server.
+			</xs:documentation>
+		    </xs:annotation>
+		    <xs:restriction base="xs:integer">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="2000"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="connect-timeout" type="timeoutType" minOccurs="0" default="3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Timeout in milliseconds for connection establishment to the database.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="query-timeout" type="timeoutType" minOccurs="0" default="500">
+		<xs:annotation>
+		    <xs:documentation>
+			Timeout in milliseconds for a query to complete.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="database">
+	<xs:annotation>
+	    <xs:documentation>
+		Declare a database lookup instance. Allows RRC to query SQL databases for information. Declared as one or more instances to allow different usernames, password and pool sizes to be specified for each instance.  
+
+		Currently supports Oracle and MySQL databases.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="instance" type="db-instance" minOccurs="1" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Declares instances of the database for access by RRC.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:choice>
+		<xs:element name="query" type="xs:string" minOccurs="1">
+		    <xs:annotation>
+			<xs:documentation>
+			    SQL query to use. Should make use if '?' to represent parameters in the 'where' clause of the query.
+
+			    e.g.  select profile from user_profiles where username = ?
+			</xs:documentation>
+		    </xs:annotation>
+		</xs:element>
+		<xs:element name="query-pre-fetch" minOccurs="0">
+		    <xs:annotation>
+			<xs:documentation>
+			    SQL query to use if the entire table should be retrieved and cached internally by RRC. Should only be used for infrequently changing data, and for modest numbers of records.
+
+			    If this element is defined, RRC will cache the entire data set and only periodically update the cached content.
+			</xs:documentation>
+		    </xs:annotation>
+		    <xs:complexType>
+			<xs:annotation>
+			    <xs:documentation>
+				Time interval in milliseconds between updates to the cached copy of the data. Only used in query-pre-fetch mode.
+			    </xs:documentation>
+			</xs:annotation>
+			<xs:simpleContent>
+			    <xs:extension base="xs:string">
+				<xs:attribute name="refresh" type="xs:nonNegativeInteger" use="required"/>
+			    </xs:extension>
+			</xs:simpleContent>
+		    </xs:complexType>
+		</xs:element>
+	    </xs:choice>
+	    <xs:element name="param" minOccurs="1" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Declares the expression that will be expanded for a parameter substitution value. Multiple 'param' elements should correspond to multiple '?' in the SQL query.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:simpleContent>
+			<xs:extension base="xs:string">
+			    <xs:attribute name="column" type="identifier" use="optional"/>
+			</xs:extension>
+		    </xs:simpleContent>
+		</xs:complexType>
+	    </xs:element>
+	    <xs:element name="extract-column" type="identifier" minOccurs="1" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Name of a column from the SQL query whose value should be extracted.
+
+			Results in a variable being set with the name to contain the value of the query column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="selector" default = "roundrobin" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Defines the algorithm used to select between instances when deciding which to use for a particular query.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:enumeration value="roundrobin"/>
+			<xs:enumeration value="sequential"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="up-count" type="xs:integer" minOccurs="0" default = "3">
+		<xs:annotation>
+		    <xs:documentation>
+			Number of successful probes required to consider a failed instance as recovered.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="down-count" type="xs:integer" minOccurs="0" default = "3">
+		<xs:annotation>
+		    <xs:documentation>
+			Number of consecutive failed queries for an instance to be considered failed.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="down-time" type="xs:integer" minOccurs="0" default = "3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Time over which no successful queries must occur of the instance to be considered failed.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="probe-interval" type="timeoutType" minOccurs="0" default = "3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Time interval between attempts to determine if an instance has recovered.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of this lookup for reference by the 'lookup' statement.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="one-in-n-mode" type="xs:boolean" use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Declares this database lookup to only expect one of its instances to be working at any time. RRC limits the error reporting in this environment to only complain if all instances are unavailable.
+
+		    e.g. a cold standby solution where the second instance isn't normally available
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="vendor" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Declares the vendor of the database, and thus which driver should be used for access.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="mysql"/>
+		    <xs:enumeration value="oracle"/>
+		    <xs:enumeration value="oracle:oci"/>
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ldap">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares an external LDAP lookup.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="ldap-version" default="3" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Specifies which version of LDAP to use for LDAP queries.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:integer">
+			<xs:minInclusive value="2"/>
+			<xs:maxInclusive value="3"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="host" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Hostname or IP address of the LDAP server.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:pattern value="[a-zA-Z0-9\-_+.]+(:[0-9]+)?"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="username" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Username for authentication with the LDAP server. If this is not specified, RRC will bind anonymously with the LDAP server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="password" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Password for the authentication user.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="base-dn" type="xs:string">
+		<xs:annotation>
+		    <xs:documentation>
+			Base DN for the LDAP queries.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="scope" default="sub">
+		<xs:annotation>
+		    <xs:documentation>
+			Scope of the search.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:enumeration value="sub"/>
+			<xs:enumeration value="one"/>
+			<xs:enumeration value="none"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="query">
+		<xs:annotation>
+		    <xs:documentation>
+			LDAP query expression. Can include substitution expressions to complete the query.
+
+			e.g.  iispSID=${radius:Calling-Station-Id}
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:simpleContent>
+			<xs:extension base="xs:string">
+			    <xs:attribute name="conversion" type="keyConversion" default="none" />
+			</xs:extension>
+		    </xs:simpleContent>
+		</xs:complexType>
+	    </xs:element>
+	    <xs:element name="query-pre-fetch" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Causes RRC to fetch the entire contents of the LDAP query and cache them internally. Only simple 'tables' can be cached in this way.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:attribute name="key-attr" type="xs:string" use="required">
+			<xs:annotation>
+			    <xs:documentation>
+				Name of the attribute that is the search key for lookups in the internal cached copy.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="key-value" type="xs:string" use="required">
+			<xs:annotation>
+			    <xs:documentation>
+				Expression to evaluate against the RADIUS request to generate the value for the key attribute.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="refresh" type="xs:nonNegativeInteger" use="required">
+			<xs:annotation>
+			    <xs:documentation>
+				Interval in milliseconds between refreshes of the cached data.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		</xs:complexType>
+	    </xs:element>
+	    <xs:element name="req-attr" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Name of an attribute whose value should be retrieved.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="connect-timeout" type="timeoutType" minOccurs="0" default="3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Timeout in milliseconds to establish a connection to the directory.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="read-timeout" type="timeoutType" minOccurs="0" default="500">
+		<xs:annotation>
+		    <xs:documentation>
+			Timeout in milliseconds for read timeout, and query execute timeout.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="pool-size" default="5" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Maximum number of concurrent connections permittted to the LDAP directory.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:integer">
+			<xs:minInclusive value="-1000"/>
+			<xs:maxInclusive value="1000"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="up-count" type="xs:integer" minOccurs="0" default = "3">
+		<xs:annotation>
+		    <xs:documentation>
+			Number of successful probes required to consider a failed directory as recovered.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="down-count" type="xs:integer" minOccurs="0" default = "3">
+		<xs:annotation>
+		    <xs:documentation>
+			Number of successive query failures required to consider the directory as failed.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="down-time" type="xs:integer" minOccurs="0" default = "3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Time in milliseconds over which no successful queries must occur for the directory to be considered failed.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="probe-interval" type="timeoutType" minOccurs="0" default = "3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Interval in milliseconds between availability probes against a failed server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="probe-query" type="xs:string">
+		<xs:annotation>
+		    <xs:documentation>
+			LDAP query to use as a probe to determine if the directory is available.
+
+			Note: no RADIUS packet is available, so no substitution expressions should be used.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="selector" minOccurs="0" default = "roundrobin">
+		<xs:annotation>
+		    <xs:documentation>
+			Selection algorithm used to distribute LDAP queries across the available instances.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:enumeration value="roundrobin"/>
+			<xs:enumeration value="sequential"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the lookup for reference by 'lookup' statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="one-in-n-mode" type="xs:boolean" use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Declares this database lookup to only expect one of its instances to be working at any time. RRC limits the error reporting in this environment to only complain if all instances are unavailable.
+
+		    e.g. a cold standby solution where the second instance isn't normally available
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="restful">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares a JSON RESTful web service as a lookup source.
+		The RESTful web service must return a JSON encoded result object.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="host" type="xs:string" minOccurs="1" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Host IP and port number of RESTful server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="url" type="xs:string" minOccurs="1" maxOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			URL to access the RESTful web service to use as a lookup.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="ping-url" type="xs:string" minOccurs="1" maxOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			URL to access the RESTful web service to use as a liveness check.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="selector" minOccurs="0" default = "sequential">
+		<xs:annotation>
+		    <xs:documentation>
+			Algorithm to use to select between URLs when fetching the file mapping.
+
+			Only meaningful if the URLs are remote (e.g. http or ftp).
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:enumeration value="roundrobin"/>
+			<xs:enumeration value="sequential"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="connect-timeout" type="timeoutType" minOccurs="0" maxOccurs="1" default="3000">
+		<xs:annotation>
+		    <xs:documentation>
+			Timeout in milliseconds to establish a connection to the directory.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="read-timeout" type="timeoutType" minOccurs="0" maxOccurs="1" default="500">
+		<xs:annotation>
+		    <xs:documentation>
+			Timeout in milliseconds for read timeout, and query execute timeout.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="pool-size" default="10" minOccurs="0" maxOccurs="1" >
+		<xs:annotation>
+		    <xs:documentation>
+			Maximum number of concurrent connections permittted to the LDAP directory.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:integer">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="100"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="username" type="xs:string" minOccurs="0" maxOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			Username for BASIC authentication if required.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="password" type="xs:string" minOccurs="0" maxOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			Password for BASIC authentication if required.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	    <xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			String expression to use as the key value when searching the file.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:simpleContent>
+			<xs:extension base="xs:string">
+			    <xs:attribute name="var" type="xs:string" default="none" />
+			    <xs:attribute name="path" type="xs:string" default="none" />
+			</xs:extension>
+		    </xs:simpleContent>
+		</xs:complexType>
+	    </xs:element>
+
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the file lookup for reference within 'lookup' statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ip-file">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares a file as a lookup source. File lookups are always fully cached internally so should be of modest size, and slow to change.
+
+		File mapping should have a simple key value in the first column, a '-->' separator to the values which should be comma separated.
+
+		e.g.  BBEU12345678	-->	Option1a,NoDNS # Test User
+
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="url" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			URL to access the file to use as a lookup.
+
+			Can be http or ftp URL as well as a simple local filename.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="selector" minOccurs="0" default = "sequential">
+		<xs:annotation>
+		    <xs:documentation>
+			Algorithm to use to select between URLs when fetching the file mapping.
+
+			Only meaningful if the URLs are remote (e.g. http or ftp).
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:enumeration value="roundrobin"/>
+			<xs:enumeration value="sequential"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="refresh" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Interval in milliseconds between file refreshes.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="search-key">
+		<xs:annotation>
+		    <xs:documentation>
+			String expression to use as the key value when searching the file.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="column" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Declares the name of a column within the file. The columns are matched against the fields within the CSV value of an entry.
+
+			The last column may be declared with a name of '...' which means the prevous declared column repeats allowing a multi-valued element to be defined.
+
+			The entry can have fewer values than declared columns in which case the additional columns will be unset.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the file lookup for reference within 'lookup' statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="file">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares a file as a lookup source. File lookups are always fully cached internally so should be of modest size, and slow to change.
+
+		File mapping should have a simple key value in the first column, a '-->' separator to the values which should be comma separated.
+
+		e.g.  BBEU12345678	-->	Option1a,NoDNS # Test User
+
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="url" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			URL to access the file to use as a lookup.
+
+			Can be http or ftp URL as well as a simple local filename.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="selector" minOccurs="0" default = "sequential">
+		<xs:annotation>
+		    <xs:documentation>
+			Algorithm to use to select between URLs when fetching the file mapping.
+
+			Only meaningful if the URLs are remote (e.g. http or ftp).
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:simpleType>
+		    <xs:restriction base="xs:string">
+			<xs:enumeration value="roundrobin"/>
+			<xs:enumeration value="sequential"/>
+		    </xs:restriction>
+		</xs:simpleType>
+	    </xs:element>
+	    <xs:element name="refresh" type="xs:string" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Interval in milliseconds between file refreshes.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="search-key">
+		<xs:annotation>
+		    <xs:documentation>
+			String expression to use as the key value when searching the file.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:simpleContent>
+			<xs:extension base="xs:string">
+			    <xs:attribute name="conversion" type="keyConversion" default="none" />
+			</xs:extension>
+		    </xs:simpleContent>
+		</xs:complexType>
+	    </xs:element>
+	    <xs:element name="column" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Declares the name of a column within the file. The columns are matched against the fields within the CSV value of an entry.
+
+			The last column may be declared with a name of '...' which means the prevous declared column repeats allowing a multi-valued element to be defined.
+
+			The entry can have fewer values than declared columns in which case the additional columns will be unset.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the file lookup for reference within 'lookup' statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="lookups">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares external data lookups for use within the configuration.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+	    <xs:choice>
+		<xs:element name="ldap" type="ldap"/>
+		<xs:element name="file" type="file"/>
+		<xs:element name="ip-file" type="ip-file"/>
+		<xs:element name="database" type="database"/>
+		<xs:element name="jsonrest" type="restful"/>
+	    </xs:choice>
+	</xs:sequence>
+    </xs:complexType>
+    
+    <xs:simpleType name="memcacheTagMode">
+	<xs:annotation>
+	    <xs:documentation>
+		Defines the different mechanisms that can be used to construct the "key" string for storing data
+		with Memcached.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:enumeration value="default">
+		<xs:annotation>
+		    <xs:documentation>
+			The key is constructed in two phases. First the table name and the row are combined (the table name
+			is used as a tag) to form an intermediate key. This key is then used to store / retrieve a dynamically
+			generated "row key". This row key is then used as the tag, and combined with the column to form the 
+			key where the value is stored / retrieved from.
+                        
+			This doube-lookup mechanism allows an abstraction that looks like a table with rows and columns, and
+			allows entire rows to be deleted. This is achieved by simply removing the initial "row key" and allowing 
+			Memcached to age out the cached data under it's LRU scheme.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	    <xs:enumeration value="column-as-tag">
+		<xs:annotation>
+		    <xs:documentation>
+			Constructs the tag by using the column alone. This mechanism allows interworking with the 
+			Memcache NoSQL interface to MySQL. The container in the MySQL setup corresponds to the
+			"column" with the "row" forming the actual key value.
+                        
+			Note: in this mode it is not possible to "remove" an entire row since the concept of a row doesn't
+			really exist. The remove method will log a warning and do nothing.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:enumeration>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="memcache-server">
+	<xs:annotation>
+	    <xs:documentation>
+		Memcache server details.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="ip" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    IP address and port number if the server.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="weight" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Weight to be applied to the server within the set of servers.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+            
+    <xs:complexType name="table-memcached">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares external memcached based table within the configuration.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="min-connections" type="xs:integer" minOccurs="0" default = "5">
+		<xs:annotation>
+		    <xs:documentation>
+			Minimum number of connections to maintain to the memcached server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="max-connections" type="xs:integer" minOccurs="0" default = "16">
+		<xs:annotation>
+		    <xs:documentation>
+			Maximum number of connections to maintain to the memcached server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="initial-connections" type="xs:integer" minOccurs="0" default = "5">
+		<xs:annotation>
+		    <xs:documentation>
+			Initial number of connections to maintain to the memcached server.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="max-idle-time" type="xs:integer" minOccurs="0" default = "900000">
+		<xs:annotation>
+		    <xs:documentation>
+			Maximum time a connection can be idle before being removed from the connection pool (ms)
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="connect-timeout" type="xs:integer" minOccurs="0" default = "2000">
+		<xs:annotation>
+		    <xs:documentation>
+			Connection timeout (ms)
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="read-timeout" type="xs:integer" minOccurs="0" default = "2000">
+		<xs:annotation>
+		    <xs:documentation>
+			Response timeout (ms)
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="key-conversion" type="keyConversion" minOccurs="0" default = "lowercase">
+		<xs:annotation>
+		    <xs:documentation>
+			Key conversion to apply.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	    <xs:element name="ttl" type="xs:integer" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Time to live (seconds) for the elements stored.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	    <xs:element name="ttl-variance" type="xs:integer" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Random variance for the Time to live (seconds) for the elements stored.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	    <xs:element name="server" type="memcache-server" minOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			Memcache server to use.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table for reference within statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="mode" type="memcacheTagMode" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Mode to use for building the memcache key string.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="table-internal">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares internal table.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="initial-capacity" type="xs:integer" minOccurs="0" default = "100000">
+		<xs:annotation>
+		    <xs:documentation>
+			Initial size to allocate for the number of table rows. Table will be dynamically sized, but
+			best efficiency is achieved if the initial size is sensible!
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <!-- this isn't a probablility, but has the same range criteria! -->
+	    <xs:element name="load-factor" type="probability" minOccurs="0" default = "0.75">
+		<xs:annotation>
+		    <xs:documentation>
+			Load factor to apply to the table for hashing table rows. (0 &lt; load-factor &lt;= 1.0)
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="key-conversion" type="keyConversion" minOccurs="0" default = "lowercase">
+		<xs:annotation>
+		    <xs:documentation>
+			Key conversion to apply.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	    <xs:element name="ttl" type="xs:integer" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Time to live (seconds) for the elements stored.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	    <xs:element name="ttl-variance" type="xs:integer" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Random variance for the Time to live (seconds) for the elements stored.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table for reference within statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="tables">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares tables for use within the configuration.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+	    <xs:choice>
+		<xs:element name="internal" type="table-internal"/>
+		<xs:element name="memcache" type="table-memcached"/>
+	    </xs:choice>
+	</xs:sequence>
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- Logic and matches                                                       -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="and">
+	<xs:annotation>
+	    <xs:documentation>
+		Logical 'and' of the elements.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="unbounded">
+	    <xs:group ref="logicClause"/>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="or">
+	<xs:annotation>
+	    <xs:documentation>
+		Logical 'or' of the elements.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="unbounded">
+	    <xs:group ref="logicClause"/>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="not">
+	<xs:annotation>
+	    <xs:documentation>
+		Logical negation of the single child element.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="1">
+	    <xs:group ref="logicClause"/>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:group name="booleanOp">
+	<xs:choice>
+	    <xs:element name="and" type="and"/>
+	    <xs:element name="or" type="or"/>
+	    <xs:element name="not" type="not"/>
+	</xs:choice>
+    </xs:group>
+
+    <xs:complexType name="match-acl">
+	<xs:annotation>
+	    <xs:documentation>
+		Match against a declared access list.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="acl" type="xs:string">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the access list to match against. 
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="variable">
+	<xs:annotation>
+	    <xs:documentation>
+		Matches the value of a variable against a regular expression.  Returns true if the value matches.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="name" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Literal regular expression to match against.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="comparison">
+	<xs:annotation>
+	    <xs:documentation>
+		Basic type for simple comparison operations.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="string" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression to compare.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="match" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Value to match against.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="mode" use="optional" default="numeric">
+	    <xs:annotation>
+		<xs:documentation>
+		    The style of comparison, Numeric or String
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="numeric"/>
+		    <xs:enumeration value="string"/>
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+	<xs:attribute name="ignore-case" type="xs:boolean" use="optional" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enables case insensitive matching.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="is-list">
+	<xs:annotation>
+	    <xs:documentation>
+		Tests a variable to see if it contains a list of values (true) or a single value (false).
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="match-regex">
+	<xs:annotation>
+	    <xs:documentation>
+		Match a string expression against a regular expression. Returns true of the expression matches the regular expression.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="string" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String containing substition expressions.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="simple-string-match">
+	<xs:attribute name="string" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String containing substition expressions.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="match" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression to match against.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="ignore-case" type="xs:boolean" use="optional" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enables case insensitive matching.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="isDefined">
+	<xs:annotation>
+	    <xs:documentation>
+		True if the variable is defined.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to test.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="isEmpty">
+	<xs:annotation>
+	    <xs:documentation>
+		True if the variable is not defined or has no values (zero length)
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to test.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="isNotEmpty">
+	<xs:annotation>
+	    <xs:documentation>
+		True if the variable is defined and has a value.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to test.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="match-ip">
+	<xs:annotation>
+	    <xs:documentation>
+		Matches RADIUS attribute against a subnet. Returns true if the IP in the RADIUS attribute is within the subnet.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="subnet" type="xs:string" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			Subnet to match
+			e.g. 10.123.22.0/24
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="attr" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS attribute.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="is-valid-password">
+	<xs:annotation>
+	    <xs:documentation>
+		Validate a password. Returns true if the password from the RADIUS packet matches the value of the password attribute.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="chap" type="xs:boolean" use="optional" default="true">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable chap password checking.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="pap" type="xs:boolean" use="optional" default="true">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable PAP password checking.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="password" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String containing substition expressions for the plain text password to match.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="is-valid-product">
+	<xs:annotation>
+	    <xs:documentation>
+		Check to see if the named product is valid on the DPI platform.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="dpi" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the DPI instance to check.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="product" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression for the name of the product to test.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="is-redirect-product">
+	<xs:annotation>
+	    <xs:documentation>
+		Check to see if the named product is a redirect product.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="dpi" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the DPI instance to check.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="product" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression for the name of the product to test.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="random">
+	<xs:annotation>
+	    <xs:documentation>
+		Return true with a given random probability.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="probability" type="probability" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Probability of a "true" return value, between 0.0 and 1.0.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="isIP">
+	<xs:annotation>
+	    <xs:documentation>
+		Return true if the value looks like an IP address.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Value to be tested for being an IP address.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:group name="logicClause">
+	<xs:choice>
+	    <xs:element name="is-valid-product" type="is-valid-product"/>
+	    <xs:element name="is-valid-password" type="is-valid-password"/>
+	    <xs:element name="is-redirect-product" type="is-redirect-product"/>
+	    <xs:element name="variable" type="variable"/>
+	    <xs:element name="is-list" type="is-list"/>
+	    <xs:element name="starts-with" type="simple-string-match"/>
+	    <xs:element name="ends-with" type="simple-string-match"/>
+	    <xs:element name="contains" type="simple-string-match"/>
+	    <xs:element name="match-regex" type="match-regex"/>
+	    <xs:element name="match-ip" type="match-ip"/>
+	    <xs:element name="match-acl" type="match-acl"/>
+	    <xs:element name="equals" type="comparison"/>
+	    <xs:element name="less-than" type="comparison"/>
+	    <xs:element name="less-than-equals" type="comparison"/>
+	    <xs:element name="greater-than" type="comparison"/>
+	    <xs:element name="greater-than-equals" type="comparison"/>
+	    <xs:element name="is-defined" type="isDefined"/>
+	    <xs:element name="is-not-defined" type="isDefined"/>
+	    <xs:element name="is-empty" type="isEmpty"/>
+	    <xs:element name="is-not-empty" type="isNotEmpty"/>
+	    <xs:element name="is-authentication"/>
+	    <xs:element name="is-accounting"/>
+	    <xs:element name="is-start"/>
+	    <xs:element name="is-stop"/>
+	    <xs:element name="is-interim"/>
+	    <xs:element name="is-accept"/>
+	    <xs:element name="is-reject"/>
+	    <xs:element name="is-deny"/>
+	    <xs:element name="is-ipv4" type="isIP"/>
+	    <xs:element name="is-ipv6" type="isIP"/>
+	    <xs:element name="random" type="random"/>     
+	    <xs:element name="table-store" type="table-store"/>
+	    <xs:element name="table-fetch" type="table-fetch"/>
+	    <xs:element name="table-increment" type="table-increment"/>
+	    <xs:element name="table-decrement" type="table-decrement"/>
+	    <xs:element name="table-zero" type="table-zero"/>
+	    <xs:element name="table-delete" type="table-delete"/>
+	    <xs:element name="table-remove" type="table-remove"/>
+	    <xs:group ref="booleanOp"/>
+	</xs:choice>
+    </xs:group>
+
+    <!-- ======================================================================= -->
+    <!-- Access List                                                             -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="acl">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares an access list for use in matching against RADIUS packets.
+
+		Can contain any logical expression.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0">
+	    <xs:group ref="logicClause"/>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the access list for reference elsewhere in the configuration.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="access-lists">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares access lists for reference elsewhere within the configuration.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="acl" type="acl" minOccurs="0" maxOccurs="unbounded"/>
+	</xs:sequence>
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- Actions                                                                 -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="access-accept">
+	<xs:annotation>
+	    <xs:documentation>
+		Generates an Access-Accept response to an authentication request.
+
+		The body may include statments to customise the response packet. Within the body, the statements that manupulate RADIUS packets (radius-add, radius-set, radius-remove and radius-delete) will operate on the Access-Accept packet. Similarly, changes to variables are local to the access-accept statement.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+	<xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+    </xs:complexType>
+
+    <xs:complexType name="access-reject">
+	<xs:annotation>
+	    <xs:documentation>
+		Generates an Access-Reject response to an authentication request.
+
+		The body may include statments to customise the response packet. Within the body, the statements that manupulate RADIUS packets (radius-add, radius-set, radius-remove and radius-delete) will operate on the Access-Reject packet. Similarly, changes to variables are local to the access-reject statement.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+	<xs:attribute name="log" type="xs:boolean" use="optional" default="false"/>
+    </xs:complexType>
+    <xs:complexType name="table-store">
+	<xs:annotation>
+	    <xs:documentation>
+		Store a value into a table row / column..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="column" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Columns name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Value to store.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="table-fetch">
+	<xs:annotation>
+	    <xs:documentation>
+		Fetch a value from a table row / column..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="column" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Columns name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Variable where the value should be stored.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="ignore-expiry" type="xs:boolean" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Flag to indicate that the fetch should ignore any expiry
+		    associated with the table (if possible). Not all table
+		    implementations will support this.
+		    Internal tables do, memcached tables don't!
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="table-increment">
+	<xs:annotation>
+	    <xs:documentation>
+		Increment the value in a table row / column..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="column" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Columns name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="table-decrement">
+	<xs:annotation>
+	    <xs:documentation>
+		Decrement the value in a table row / column..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="column" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Columns name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="table-zero">
+	<xs:annotation>
+	    <xs:documentation>
+		Zero the value in a table row / column..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="column" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Columns name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="table-delete">
+	<xs:annotation>
+	    <xs:documentation>
+		Delete a value from a table row / column..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="column" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Columns name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="table-remove">
+	<xs:annotation>
+	    <xs:documentation>
+		Remove a for from a table..
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="table" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the table.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="row" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Row key.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="radius-set">
+	<xs:annotation>
+	    <xs:documentation>
+		Set the value of a RADIUS attribute. The behaviour is to delete existing attributes and add a new attribute with the specified value.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="attr" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS attribute.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional"/>
+	<xs:attribute name="csv" type="xs:string" use="optional"/>
+    </xs:complexType>
+
+    <xs:complexType name="radius-add">
+	<xs:annotation>
+	    <xs:documentation>
+		Add a RADIUS attribute. The behaviour is to add an additional attributes to the RADIUS packet. No check is performed for the validity of adding the attribute. This can result in non RFC conformant packets if the RFCs require that only a single instance of the attribute type exists
+
+		e.g. CHAP-Password or User-Name
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="attr" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS attribute.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Regular expression applied to the expanded value. If the value matches, and the regular expression contains a capturing group, the value becomes the value of the first capturing group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="csv" type="xs:string" use="optional"/>
+    </xs:complexType>
+
+    <xs:complexType name="radius-remove">
+	<xs:annotation>
+	    <xs:documentation>
+		Remove a RADIUS attribute from the packet.
+
+		If an attribute of the specified name exists, and its value matches the regex (if specified), that instance of the attribute will be removed from the packet.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="attr" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS attribute.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Regular expression applied to the expanded value. If the value matches, and the regular expression contains a capturing group, the value becomes the value of the first capturing group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="radius-delete">
+	<xs:annotation>
+	    <xs:documentation>
+		Delets all instances of a RADIUS attribute from the packet.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="attr" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS attribute.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="radius-log">
+	<xs:annotation>
+	    <xs:documentation>
+		Dumps a RADIUS packet to the specified logger. Default is to log to the default log file.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="logger" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the logger to use when dumping the packet contents.  Defaults to the standard logging stream.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="level" type="logLevel" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Level at which the packet should be logged.  Defaults to 'info'.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="set">
+	<xs:annotation>
+	    <xs:documentation>
+		Set the value of a variable.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to set.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Regular expression applied to the expanded value. If the value matches, and the regular expression contains a capturing group, the value becomes the value of the first capturing group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="conversion" type="valueConversion" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Conversion function to apply during the assignment.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="add">
+	<xs:annotation>
+	    <xs:documentation>
+		Add a value to a variable. If the variable doesn't exist, it will be created.
+
+		Will convert a single value variable into a list if necessary.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to set.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Regular expression applied to the expanded value. If the value matches, and the regular expression contains a capturing group, the value becomes the value of the first capturing group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="conversion" type="valueConversion" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Conversion function to apply during the assignment.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="remove">
+	<xs:annotation>
+	    <xs:documentation>
+		Remove a value from a list variable. If the variable exists, any values contained that match the regular expression will be removed.
+
+		If the removal results in the variable having no value, it will be deleted (become undefined).
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to change.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Regular expression applied to the expanded value. If the value matches, and the regular expression contains a capturing group, the value becomes the value of the first capturing group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="delete">
+	<xs:annotation>
+	    <xs:documentation>
+		Deletes a variable. If will become undefined.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to delete.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="pause">
+	<xs:annotation>
+	    <xs:documentation>
+		Pauses rule execution for the specified number of milliseconds.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="time" type="xs:positiveInteger" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="break">
+	<xs:annotation>
+	    <xs:documentation>
+		Breaks out of the innermost containing 'foreach' loop.
+
+		If no containing 'foreach' is found, will break out of the rule execution as an error.
+	    </xs:documentation>
+	</xs:annotation>
+    </xs:complexType>
+
+    <xs:complexType name="end">
+	<xs:annotation>
+	    <xs:documentation>
+		Stops evaluation of more rules and returns success.
+	    </xs:documentation>
+	</xs:annotation>
+    </xs:complexType>
+    
+    <xs:complexType name="return">
+	<xs:annotation>
+	    <xs:documentation>
+		Stops evaluation of the current rule, and returns succcess.
+		Can be used to return from a rule that has been "called", 
+		and contiue processing at the statment after the "call".
+	    </xs:documentation>
+	</xs:annotation>
+    </xs:complexType>
+    
+    <xs:complexType name="call">
+	<xs:annotation>
+	    <xs:documentation>
+		Calls a named rule as a subroutine. After the named rule completes, execution continues with the next statement (unless the called rule uses the 'end' statement).
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="rule" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="lookup">
+	<xs:annotation>
+	    <xs:documentation>
+		Performs an external lookup using the named lookup.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="dpi-update">
+	<xs:annotation>
+	    <xs:documentation>
+		Updates the DPI platform based on the type of accounting request being handled and the specified parameters.
+
+		If the accounting packet is a Start or Interim-Update, a start-session API call will be generated. If the accounting packet is a Stop, a stop-session API call will be generated.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+		<xs:element name="optional-profile" type="xs:string"/>
+	    </xs:sequence>
+	    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+		<xs:choice>
+		    <xs:element name="ip" type="xs:string"/>
+		    <xs:element name="subnet" type="xs:string"/>
+		</xs:choice>
+	    </xs:sequence>
+	</xs:sequence>
+	<xs:attribute name="id" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the DPI element to use.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="userid" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression evaluated as the user identifier.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="profile" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression evaluated as the product (profile) name.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="default-profile" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression evaluated as the default product (profile). This is only used as a last resort if the specified profile is not valid, and the user doesn't already have a profile applied on the DPI platform.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="strip-domain" type="xs:boolean" use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enables removal of the domain portion of the user-id before use as the user identifier.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="max-ip-count" type="xs:positiveInteger" use="optional" default="1025">
+	    <xs:annotation>
+		<xs:documentation>
+		    Limit the number of IP addresses that will be handled. If the IP address list expanded from the "ip" and "subnet" elements exceeds this limit, no more IP addresses will be handled.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="retries" type="xs:nonNegativeInteger" use="optional" default="5">
+	    <xs:annotation>
+		<xs:documentation>
+		    The number of attempts that will be made to complete the API call to the DPI platform in the event of an error.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="retry-pause" type="xs:positiveInteger" use="optional" default="100">
+	    <xs:annotation>
+		<xs:documentation>
+		    The amount of time in ms to pause between API calls in the event of an error.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="userid-transform" use="optional" default="btretail">
+	    <xs:annotation>
+		<xs:documentation>
+		    Specify a transformation to apply to the user identity.
+
+		    The "btretail" option applies the legacy BT Retail behaviour where user identities containing a '@' character are coerced to lower case, and the remaining user identities are forced to upper case.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="lowercase"/>
+		    <xs:enumeration value="uppercase"/>
+		    <xs:enumeration value="btretail"/>
+		    <xs:enumeration value="none"/>
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="dpi-get-profile">
+	<xs:annotation>
+	    <xs:documentation>
+		Queries the DPI platform to retrieve the current profile associated with the user.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="id" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the DPI element to use.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="userid" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression evaluated as the user identifier.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="profile-var" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable into which the retrieved profile is placed.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="optional-profiles-var" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable into which the retrieved optional profiles are placed.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="strip-domain" type="xs:boolean" use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enables removal of the domain portion of the user-id before use as the user identifier.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="userid-transform" use="optional" default="btretail">
+	    <xs:annotation>
+		<xs:documentation>
+		    Specify a transformation to apply to the user identity.
+
+		    The "btretail" option applies the legacy BT Retail behaviour where user identities containing a '@' character are coerced to lower case, and the remaining user identities are forced to upper case.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="lowercase"/>
+		    <xs:enumeration value="uppercase"/>
+		    <xs:enumeration value="btretail"/>
+		    <xs:enumeration value="none"/>
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="proxy">
+	<xs:annotation>
+	    <xs:documentation>
+		Forwards a RADIUS request to the specified RADIUS group.
+
+		The body may include statments to customise the packet before forwarding. Within the body, the statements that manupulate RADIUS packets (radius-add, radius-set, radius-remove and radius-delete) will operate on the packet to be forwarded. Similarly, changes to variables are local to the proxy statement.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0" maxOccurs="unbounded">
+	    <xs:annotation>
+		<xs:documentation>
+		    Statements that may be used to modify the RADIUS packet prior to forwarding to the destination.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+	<xs:attribute name="destination" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the RADIUS group to which the request should be sent.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="log" type="xs:boolean" use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Log the details of the packet in the authentication or accounting log as appropriate.
+
+		    Care should be excercised with this option. All received requests are logged by default. Loggin all outbound requests will double the rate and size of the logging which could impact performance.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="fire-and-forget" type="xs:boolean" use="optional" default="false" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Handle the request as fire andf forget regardless of the RADIUS group configuration. RRC will send the request and immediately forget it, and not expect a acknowledgement for accounting packets.
+
+		    Note: setting this to 'false' will not override a RADIUS group that is configured for fire and forget.
+
+		    The effective behaviour is fire and forget will be used if either the request or the RADIUS group specifies fire and forget.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:simpleType name="logLevel">
+	<xs:annotation>
+	    <xs:documentation>
+		Valid log levels.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:restriction base="xs:string">
+	    <xs:enumeration value="trace"/>
+	    <xs:enumeration value="debug"/>
+	    <xs:enumeration value="info"/>
+	    <xs:enumeration value="warn"/>
+	    <xs:enumeration value="warning"/>
+	    <xs:enumeration value="error"/>
+	</xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="log">
+	<xs:annotation>
+	    <xs:documentation>
+		Log a message.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:simpleContent>
+	    <xs:extension base="xs:string">
+		<xs:attribute name="logger" type="xs:string" use="optional" default="info">
+		    <xs:annotation>
+			<xs:documentation>
+			    Logger to use when writing message.  Defaults to the standard log stream.
+			</xs:documentation>
+		    </xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="level" type="logLevel" default="info">
+		    <xs:annotation>
+			<xs:documentation>
+			    Level at which to log the message.
+			</xs:documentation>
+		    </xs:annotation>
+		</xs:attribute>
+	    </xs:extension>
+	</xs:simpleContent>
+    </xs:complexType>
+
+    <xs:complexType name="copy-framed-routes">
+	<xs:annotation>
+	    <xs:documentation>
+		Copies the contents of Framed-Route attributes to a Class attribute with the Class attribute value prefixed with default prefix of "RINRoute:".
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="prefix" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Specify the prefix to use in the Class attribute value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+    
+    <xs:complexType name="ip-mask">
+	<xs:annotation>
+	    <xs:documentation>
+		Set the value of a variable.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to set.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    String expression for the IP address to which the mask is applied.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="regex" type="xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Regular expression applied to the expanded value. If the value matches, and the regular expression contains a capturing group, the value becomes the value of the first capturing group.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="mask" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    IP Mask to apply. Must be in the form of an IP address (IPv4 or IPv6).
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="foreach">
+	<xs:annotation>
+	    <xs:documentation>
+		Iterate over the values within a variables list of values, and execute the child statements for each value.
+
+		Sets a variable to each value in turn. The scope of the variable is the contained block of statements. It will not exists after the foreach statement completes.
+
+		If a variable with the same name exists, its value will be hidden within the child statements, and will be restored on exit of the statement.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="unbounded">
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+	<xs:attribute name="var" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the variable to hold the list value.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="value" type="xs:string" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Expression to evaluate.
+		    e.g. "${optional-products}"
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- Rule                                                   -->
+    <!-- ======================================================================= -->
+
+    <xs:group name="statement">
+	<xs:choice>
+	    <xs:element name="set" type="set">
+		<xs:annotation>
+		    <xs:documentation>
+			Set the value of a variable/
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="set-if-null" type="set">
+		<xs:annotation>
+		    <xs:documentation>
+			Conditionally set the value of a variable if the variable is currently null / not defined.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="add" type="add">
+		<xs:annotation>
+		    <xs:documentation>
+			Add a value to a variable, creating or extending a list of values.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="remove" type="remove">
+		<xs:annotation>
+		    <xs:documentation>
+			Remove a value from a variables list of values.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="delete" type="delete">
+		<xs:annotation>
+		    <xs:documentation>
+			Delete a variable.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="lookup" type="lookup">
+		<xs:annotation>
+		    <xs:documentation>
+			Perform an external data lookup.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="break" type="break">
+		<xs:annotation>
+		    <xs:documentation>
+			Break out of the enclosing loop (foreach).
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="end" type="end">
+		<xs:annotation>
+		    <xs:documentation>
+			End rule execution with a success exit status.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="return" type="return">
+		<xs:annotation>
+		    <xs:documentation>
+			Return from a rule and continue processing after the
+			"call" statement.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="call" type="call">
+		<xs:annotation>
+		    <xs:documentation>
+			Call another rule as a subroutine.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="log" type="log">
+		<xs:annotation>
+		    <xs:documentation>
+			Log a message.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="if" type="if">
+		<xs:annotation>
+		    <xs:documentation>
+			Conditional execution; if-then-else.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="foreach" type="foreach">
+		<xs:annotation>
+		    <xs:documentation>
+			Iterate over a list of values from a variable.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="dump-vars">
+		<xs:annotation>
+		    <xs:documentation>
+			Dump the current variables and their values to the debug logging stream.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="pause" type="pause">
+		<xs:annotation>
+		    <xs:documentation>
+			Pause rule execution for a period.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="radius-set" type="radius-set">
+		<xs:annotation>
+		    <xs:documentation>
+			Replace the value of a RADIUS attribute (adds attribute if not already present).
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="radius-add" type="radius-add">
+		<xs:annotation>
+		    <xs:documentation>
+			Add a RADIUS attribute to a RADIUS packet.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="radius-remove" type="radius-remove">
+		<xs:annotation>
+		    <xs:documentation>
+			Removes an instance of a RADIUS attribute with a given value.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="radius-delete" type="radius-delete">
+		<xs:annotation>
+		    <xs:documentation>
+			Deletes all instanced of a RADIUS attribute.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="log-radius-packet" type="radius-log">
+		<xs:annotation>
+		    <xs:documentation>
+			Logs the contents of a RADIUS packet.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="copy-framed-routes" type="copy-framed-routes">
+		<xs:annotation>
+		    <xs:documentation>
+			Copies the contents of any Framed-Route attributes to a Class attribute. Each Framed-Route will add a Class attribute containing a prefix and the contents of the Framed-Route.
+
+			Default prefix is 'RINRoute:'.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="add-session-type">
+		<xs:annotation>
+		    <xs:documentation>
+			Adds a Class attribute containing the type of user. Class attribute will have one of the following values:
+
+			RINType:DYNAMIC - dynamically allocated IP address
+			RINType:STATIC - statically allocated IP address
+			RINType:NONAT - dynamically allocated IP address with a Framed-Route attribute
+			RINType:TUNNEL - L2TP tunnel initiation
+
+			Statement is only useful in the Authentication Response ruleset.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="dpi-get-profile" type="dpi-get-profile">
+		<xs:annotation>
+		    <xs:documentation>
+			Retrieves the current product / profile applied to a user within the DPI platform.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="dpi-update" type="dpi-update">
+		<xs:annotation>
+		    <xs:documentation>
+			Updates the DPI platform based on the type of accounting request being handled and the specified parameters.
+
+			If the accounting packet is a Start or Interim-Update, a start-session API call will be generated. If the accounting packet is a Stop, a stop-session API call will be generated.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="access-accept" type="access-accept">
+		<xs:annotation>
+		    <xs:documentation>
+			Generates an Access-Accept response to an authentication request.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="access-reject" type="access-reject">
+		<xs:annotation>
+		    <xs:documentation>
+			Generates an Access-Reject response to an authentication request.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="proxy" type="proxy">
+		<xs:annotation>
+		    <xs:documentation>
+			Proxies a RADIUS request to another system.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="check-reorder-discard">
+		<xs:annotation>
+		    <xs:documentation>
+			Performs some time based checks for re-ordered accounting Stop - Start packet sequences.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="ip-mask" type="ip-mask">
+		<xs:annotation>
+		    <xs:documentation>
+			Apply an arbitrary IP mask to an IP address. 
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <!-- TABLE STATEMENTS -->
+	    <xs:element name="table-store" type="table-store">
+		<xs:annotation>
+		    <xs:documentation>
+			Stores a value in a table row / column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+            
+	    <xs:element name="table-fetch" type="table-fetch">
+		<xs:annotation>
+		    <xs:documentation>
+			fetches a value from a table row / column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="table-increment" type="table-increment">
+		<xs:annotation>
+		    <xs:documentation>
+			Incremenrs a value in a table row / column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="table-decrement" type="table-decrement">
+		<xs:annotation>
+		    <xs:documentation>
+			Decrements a value in a table row / column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="table-zero" type="table-zero">
+		<xs:annotation>
+		    <xs:documentation>
+			Stores zero in a table row / column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="table-delete" type="table-delete">
+		<xs:annotation>
+		    <xs:documentation>
+			Deletes a value in a table row / column.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="table-remove" type="table-remove">
+		<xs:annotation>
+		    <xs:documentation>
+			Removes a row from a table.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+             
+	</xs:choice>
+    </xs:group>
+
+    <xs:complexType name="if">
+	<xs:annotation>
+	    <xs:documentation>
+		Implement a conditional test with statement blocks for true ('then') and false ('else') cases.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:group ref="logicClause">
+		<xs:annotation>
+		    <xs:documentation>
+			Single logical condition for the test.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:group>
+	    <xs:element name="then" type="then" minOccurs="1">
+		<xs:annotation>
+		    <xs:documentation>
+			Statements executed if the logical test returns true.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="else" type="else" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			Statements executed if the logical test returns false.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="then">
+	<xs:annotation>
+	    <xs:documentation>
+		Statements executed as part of an 'if' statement, when the logical test returns true.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="unbounded">
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="else">
+	<xs:annotation>
+	    <xs:documentation>
+		Statements executed as part of an 'if' statement, when the logical test returns false.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="unbounded">
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="rule">
+	<xs:annotation>
+	    <xs:documentation>
+		A rule collects together a sequence of statements.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence maxOccurs="unbounded">
+	    <xs:group ref="statement"/>
+	</xs:sequence>
+	<xs:attribute name="name" type="xs:string">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the rule.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="ruleset">
+	<xs:annotation>
+	    <xs:documentation>
+		A rule set gathers together all of the rules and logic that are applied within RRC.
+
+		Rulesets exists for handling requests in the followingg areas:
+
+		Authentication Requests
+		Authentication Responses
+		Accounting Requests
+		DPI Processing
+
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="rule" type="rule" minOccurs="0" maxOccurs="unbounded">
+		<xs:annotation>
+		    <xs:documentation>
+			A rule collects together a sequence of statements.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- DPI Details                                                             -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="e100">
+	<xs:annotation>
+	    <xs:documentation>
+		Declares an Arbor E100 based DPI platform.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="cm">
+		<xs:annotation>
+		    <xs:documentation>
+			Details for the Configuration Manager.
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+		    <xs:sequence minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="api-version" type="xs:string">
+			    <xs:annotation>
+				<xs:documentation>
+				    Identifies an API version string that RRC will try in turn to locate the appropriate API version for the CM.
+
+				    Doesn't necessarily mean RRC is fully compatible with the version though!
+				</xs:documentation>
+			    </xs:annotation>
+			</xs:element>
+		    </xs:sequence>
+		    <xs:attribute name="protocol" default="http" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Protocol to use for access to the CM. Defaults to 'http'.
+			    </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+			    <xs:restriction base="xs:string">
+				<xs:enumeration value="http"/>
+				<xs:enumeration value="https"/>
+			    </xs:restriction>
+			</xs:simpleType>
+		    </xs:attribute>
+		    <xs:attribute name="primary" type="xs:string">
+			<xs:annotation>
+			    <xs:documentation>
+				IP address of the primary server.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="secondary" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				IP address of the secondary server.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="default-profile" type="xs:string" use="optional" default="Default Profile"/>
+		    <xs:attribute name="username" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Username for access to the CM.  Not used in current versions of the CM, up to and including 9.2.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="password" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Password for access to the CM.  Not used in current versions of the CM, up to and including 9.2.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="zone" type="xs:string" default="Default Zone" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Name of the Zone to use.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="pool-size" type="xs:positiveInteger" default="32" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Maximum number of concurrent connections to the CM.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+
+		    <xs:attribute name="connect-timeout" type="xs:positiveInteger" default="5000" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Connection timeout (ms) for API calls to the CM.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+
+		    <xs:attribute name="read-timeout" type="xs:positiveInteger" default="15000" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Response / read timeout (ms) for API calls to the CM.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+
+		    <xs:attribute name="fail-threshold" type="retryType" default="3" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Number of successive API calls that must fail to regard the CM as failed.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="fail-time" type="timeoutType" default="1500" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Minimum time interval in milliseconds over which API calls must fail for the CM to be regarded as failed.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="profile-update-interval" type="xs:positiveInteger" default="300000" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				RRC caches the products / profiles retrieved from the CM for validation purposes.  This sets the interval between refreshes of the cached data.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="api-version" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Fixes the API version in the URL for access to the CM. By default RRC attempts to discover the correct API version by trial and error based on a built-in list of versions.
+
+				Doesn't necessarily mean RRC is fully compatible with the version though!
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		</xs:complexType>
+	    </xs:element>
+	    <xs:element name="sm">
+		<xs:complexType>
+		    <xs:sequence>
+		    </xs:sequence>
+		    <xs:attribute name="protocol" default="http" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Protocol to use for access to the CM. Defaults to 'http'.
+			    </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+			    <xs:restriction base="xs:string">
+				<xs:enumeration value="http"/>
+				<xs:enumeration value="https"/>
+			    </xs:restriction>
+			</xs:simpleType>
+		    </xs:attribute>
+		    <xs:attribute name="primary" type="xs:string">
+			<xs:annotation>
+			    <xs:documentation>
+				IP address of the primary server.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="secondary" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				IP address of the secondary server.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="username" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Username for access to the CM.  Not used in current versions of the CM, up to and including 9.2.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="password" type="xs:string" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Password for access to the CM.  Not used in current versions of the CM, up to and including 9.2.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="pool-size" type="xs:positiveInteger" default="32" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Maximum number of concurrent connections to the SM.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="connect-timeout" type="xs:positiveInteger" default="5000" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Connection timeout (ms) for API calls to the SM.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+
+		    <xs:attribute name="read-timeout" type="xs:positiveInteger" default="15000" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Response / read timeout (ms) for API calls to the SM.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+
+		    <xs:attribute name="fail-threshold" type="retryType" default="3" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Number of successive API calls that must fail to regard the SM as failed.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="fail-time" type="timeoutType" default="1500" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				Minimum time interval in milliseconds over which API calls must fail for the SM to be regarded as failed.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		    <xs:attribute name="busy-timeout" type="timeoutType" default="1000" use="optional">
+			<xs:annotation>
+			    <xs:documentation>
+				SM can on occaision report 'system busy'. This places a limit on the duration for which the SM can report 'system busy' before an error is triggered.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:attribute>
+		</xs:complexType>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="enable-optional-products" type="xs:boolean" use="optional" default="false" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enables the use of Arbor 9.2 "Optional Products".  Must only be enabled on Arbor SLS versions greater than (or equal to) 9.2.0.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="e30">
+	<xs:sequence>
+	    <xs:sequence minOccurs="1" maxOccurs="unbounded">
+		<xs:element name="sle" type="ipPortType">
+		    <xs:annotation>
+			<xs:documentation>
+			    IP address of a SLE for access by RRC.
+			</xs:documentation>
+		    </xs:annotation>
+		</xs:element>
+	    </xs:sequence>
+	</xs:sequence>
+	<xs:attribute name="domain" type="xs:string">
+	    <xs:annotation>
+		<xs:documentation>
+		    Domain to use for subscriber information.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="default-profile" type="xs:string" default = "default">
+	    <xs:annotation>
+		<xs:documentation>
+		    Default profile to apply if no specific profile is specified, or the specified profile doesn't exist.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="username" type="xs:string">
+	    <xs:annotation>
+		<xs:documentation>
+		    Username for access to SLE.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="password" type="xs:string">
+	    <xs:annotation>
+		<xs:documentation>
+		    Password for access to SLE.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="pool-size" type="xs:positiveInteger" default="128" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Size of the connection pool to the SLEs.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="connection-limit" type="xs:positiveInteger" default="40" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Maximum number of connections to any single SLE.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="allocation" default="leastconnections" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Algorithm for selecting which SLE instance to use for connections.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="leastconnections"/>
+		    <xs:enumeration value="roundrobin"/>
+		    <xs:enumeration value="fastest"/>
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+	<xs:attribute name="rebalance-interval" type="xs:positiveInteger" default="30000" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Time interval between rebalancing activities. Periodically RRC reviews connections to each configured SLE, and will move connections to uniformly distribute the load across the SLEs.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="min-profile-age" type="xs:positiveInteger" default="5000" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    RRC caches the products / profiles retrieved from the CM for validation purposes.  This sets the minimum interval between refreshes of the cached data.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="max-profile-age" type="xs:positiveInteger" default="900000" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    RRC caches the products / profiles retrieved from the CM for validation purposes.  This is the maximum interval between refreshes of the cached data.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="red-threshold">
+	<xs:annotation>
+	    <xs:documentation>
+		Simple linear Random Early Drop curve.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	</xs:sequence>
+	<xs:attribute name="min-percent" type="percent" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Queue fill depth at which packets start to be dropped.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="max-percent" type="percent" use="required">
+	    <xs:annotation>
+		<xs:documentation>
+		    Queue fill at which the likelyhood of drop becomes 100%.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="dpi">
+	<xs:sequence minOccurs="0">
+	    <xs:element name="drop-starts-thresholds" type="red-threshold" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			RED behaviour for accounting Start packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="drop-stops-thresholds" type="red-threshold" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			RED behaviour for accounting Stop packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:element name="drop-interims-thresholds" type="red-threshold" minOccurs="0">
+		<xs:annotation>
+		    <xs:documentation>
+			RED behaviour for accounting Interim-Update packets.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	    <xs:choice>
+		<xs:element name="e30" type="e30">
+		    <xs:annotation>
+			<xs:documentation>
+			    Associate this DPI configuration with an Arbor e30 environment.
+			</xs:documentation>
+		    </xs:annotation>
+		</xs:element>
+		<xs:element name="e100" type="e100">
+		    <xs:annotation>
+			<xs:documentation>
+			    Associate this DPI configuration with an Arbor e100 environment.
+			</xs:documentation>
+		    </xs:annotation>
+		</xs:element>
+	    </xs:choice>
+	    <xs:element name="ruleset" type="ruleset">
+		<xs:annotation>
+		    <xs:documentation>
+			Ruleset to be used when processing accounting packets for DPI login / logout activity.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="name" type = "xs:string" use="required" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of the DPI configuration element for reference by DPI statements.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="workers" type = "xs:unsignedShort" use="optional" default="128" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Specify the number of worker threads to handle DPI activity.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="queue-length" type = "xs:unsignedShort" use="optional" default="256">
+	    <xs:annotation>
+		<xs:documentation>
+		    Length of the request queue for each worker thread.  RADIUS accounting requests are placed in this queue for processing by a worker thread. The Random Early Drop behaviour is applied to the queue at the point requests are added to the queue.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="request-expiry" type = "xs:positiveInteger" use="optional" default="120000" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Age in milliseconds after which requests are dropped due to delayed processing.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="request-reorder-threshold" type = "xs:nonNegativeInteger" use="optional" default="0" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Time window during which RRC will look for potential re-ordering of RADIUS accounting Stop - Start sequences.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="lazy-threshold" type = "xs:nonNegativeInteger" use="optional" default="0">
+	    <xs:annotation>
+		<xs:documentation>
+		    RRC has a watch-dog that monitors the behaviour of the worker threads to ensure thay don't hang on accesses to external systems (e.g. LDAP lookups, DPI API calls).
+
+		    If the worker thread doesn't kick its watch-dog for this amount of time, the worker will be killed and replaced with a new instance.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="stub-mode" type="xs:boolean" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable stub-mode operation where all processing takes place as normal, but the final step of communicating with the DPI platform is skipped.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="queue" use="optional" default="single">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable DPI processing for ths DPI element.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="single" />
+		    <xs:enumeration value="multiple" />
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+	<xs:attribute name="enable" type="xs:boolean" use="optional" default="false">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable DPI processing for ths DPI element.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- Authentication and Accounting Proxies                                   -->
+    <!-- ======================================================================= -->
+
+    <xs:complexType name="auth-proxy-request">
+	<xs:annotation>
+	    <xs:documentation>
+		Configuration of the handling of authentication requests.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="ruleset" type="ruleset">
+		<xs:annotation>
+		    <xs:documentation>
+			Ruleset to apply when handling Authentication requests.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+	<xs:attribute name="default-disposition" use="optional" default="drop">
+	    <xs:annotation>
+		<xs:documentation>
+		    Default disposition to apply to any authentication request that isn't proxied elsewhere.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:simpleType>
+		<xs:restriction base="xs:string">
+		    <xs:enumeration value="drop"/>
+		    <xs:enumeration value="reject"/>
+		    <xs:enumeration value="accept"/>
+		</xs:restriction>
+	    </xs:simpleType>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="auth-proxy-response">
+	<xs:annotation>
+	    <xs:documentation>
+		Configuration of the handling of authentication responses.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence minOccurs="0">
+	    <xs:element name="ruleset" type="ruleset">
+		<xs:annotation>
+		    <xs:documentation>
+			Ruleset to apply when handling Authentication requests.
+		    </xs:documentation>
+		</xs:annotation>
+	    </xs:element>
+	</xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="auth-proxy">
+	<xs:annotation>
+	    <xs:documentation>
+		Configuration of the Authentication Proxy.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="request" type="auth-proxy-request"/>
+	    <xs:element name="response" type="auth-proxy-response"/>
+	</xs:sequence>
+	<xs:attribute name="port" type = "xs:unsignedShort" use="optional" default="1812" >
+	    <xs:annotation>
+		<xs:documentation>
+		    UDP port number RRC will listen on for authentication requests.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="logging" type = "xs:boolean" use="optional" default="true" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable logging of received requests.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="enable" type = "xs:boolean" use="optional" default="true" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable proxying of authentication requests.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="threads" type = "xs:positiveInteger" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Number of threads to use for authentication proxy functionality. Defaults to 1 per CPU.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="multi-port" type = "xs:boolean" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable use of a high port for originating proxied authentication packets.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <xs:complexType name="acct-proxy">
+	<xs:annotation>
+	    <xs:documentation>
+		Configuration of the Accounting Proxy.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:sequence>
+	    <xs:element name="ruleset" type="ruleset"/>
+	</xs:sequence>
+	<xs:attribute name="port" type = "xs:unsignedShort" use="optional" default="1813" >
+	    <xs:annotation>
+		<xs:documentation>
+		    UDP port number RRC will listen on for authentication requests.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="ack-acl" type = "xs:string" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Name of an access list that will be used to determine if a received accounting request will be acknowledged. If this is not defined, all accounting requests will be acknowledged.
+
+		    If the acl is identified, only packets that match the named ACL will be acknowledged.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="logging" type = "xs:boolean" use="optional" default="true" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable logging of received requests.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="enable" type = "xs:boolean" use="optional" default="true" >
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable proxying of accounting requests.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="threads" type = "xs:positiveInteger" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Number of threads to use for accounting proxy functionality. Defaults to 1 per CPU.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+	<xs:attribute name="multi-port" type = "xs:boolean" use="optional">
+	    <xs:annotation>
+		<xs:documentation>
+		    Enable use of a high port for originating proxied accounting packets.
+		</xs:documentation>
+	    </xs:annotation>
+	</xs:attribute>
+    </xs:complexType>
+
+    <!-- ======================================================================= -->
+    <!-- RRC Top level structure                                                 -->
+    <!-- ======================================================================= -->
+
+    <xs:element name="rrc">
+	<xs:annotation>
+	    <xs:documentation>
+		Top level configuration element. Each of the configuration files must start with this as their root element.
+	    </xs:documentation>
+	</xs:annotation>
+	<xs:complexType>
+	    <xs:annotation>
+		<xs:documentation>
+		    Top level configuration for RRC.
+		</xs:documentation>
+	    </xs:annotation>
+	    <xs:sequence maxOccurs="unbounded">
+		<xs:choice>
+		    <xs:element name="property" type="property">
+			<xs:annotation>
+			    <xs:documentation>
+				Legacy properties not supported by equivalent XML configuration elements.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="listener" type="listener">
+			<xs:annotation>
+			    <xs:documentation>
+				Listener interfaces for external status monitoring.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="statistics" type="statistics" >
+			<xs:annotation>
+			    <xs:documentation>
+				Statistics to report via the Phoenix SNMP MIB extension mechanism.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="tables" type="tables">
+			<xs:annotation>
+			    <xs:documentation>
+				Tables for data lookup and storage.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="lookups" type="lookups">
+			<xs:annotation>
+			    <xs:documentation>
+				External data lookups.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="access-lists" type="access-lists">
+			<xs:annotation>
+			    <xs:documentation>
+				Access lists for use in packet matching within the rulesets.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="radius" type="radius">
+			<xs:annotation>
+			    <xs:documentation>
+				RADIUS servers and RADIUS server groups.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="dpi" type="dpi">
+			<xs:annotation>
+			    <xs:documentation>
+				Interfaces to DPI platforms and the ruleset that should be used to handle interactions with the DPI environment.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="auth-proxy" type="auth-proxy">
+			<xs:annotation>
+			    <xs:documentation>
+				Configuration of the authentication handling behavour.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		    <xs:element name="acct-proxy" type="acct-proxy">
+			<xs:annotation>
+			    <xs:documentation>
+				Configuration of the accounting handling behavour.
+			    </xs:documentation>
+			</xs:annotation>
+		    </xs:element>
+		</xs:choice>
+	    </xs:sequence>
+	</xs:complexType>
+    </xs:element>
+</xs:schema>
